@@ -1,0 +1,73 @@
+﻿# Bắt buộc dùng TLS 1.2 để gọi Telegram API
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# Đường dẫn sessions
+$path = "C:\Program Files (x86)\Plesk\PMM\sessions"
+
+# Lấy thư mục mới nhất
+$latestFolder = Get-ChildItem -Path $path -Directory |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 1
+
+# Xác định file migration.result
+$file = Join-Path $latestFolder.FullName "migration.result"
+
+# Các lỗi cần kiểm tra
+$errors = @(
+    "Unable to create the remote backup: Transport error: unable to check directory existence: Curl error: (28) Timeout was reached: Last FTP request:  Last FTP response:",
+    "There is not enough disk space at C:\Program Files (x86)\Plesk\Backup\ to backup creation. At least"
+)
+# Lấy IP server tự động (IPv4, bỏ 127.x)
+$serverIP = (Get-NetIPAddress -AddressFamily IPv4 |
+             Where-Object { $_.IPAddress -notlike "127.*" -and $_.IPAddress -notlike "169.254.*" } |
+             Select-Object -First 1 -ExpandProperty IPAddress)
+
+# Lấy ngày giờ hiện tại
+$timeNow = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+
+# Hàm gửi cảnh báo Telegram (UTF-8 chuẩn)
+function Send-Telegram {
+    param([string]$Message)
+
+    if ([string]::IsNullOrWhiteSpace($Message)) { return }
+
+    $token = "7906718103:AAF3iHA7ld0kG-GESmY4lo9zSvvyjxHINB0"   # <-- thay bằng bot token
+    $chatId = "-4528840367"    # <-- thay bằng chat ID
+    $url = "https://api.telegram.org/bot$token/sendMessage"
+
+    $body = @{
+        chat_id = $chatId
+        text    = $Message
+    } | ConvertTo-Json -Depth 3 -Compress
+    $utf8Body = [System.Text.Encoding]::UTF8.GetBytes($body)
+
+    try {
+        Invoke-RestMethod -Uri $url -Method Post -Body $utf8Body -ContentType "application/json; charset=utf-8" -ErrorAction Stop | Out-Null
+        Write-Output "📩 Đã gửi Telegram: $Message"
+    } catch {
+        Write-Output "❌ Lỗi khi gửi cảnh báo Telegram: $_"
+    }
+}
+
+if (Test-Path $file) {
+    # Đọc 10 dòng đầu tiên
+    $firstLines = Get-Content $file -TotalCount 10
+
+    $foundError = $false
+    foreach ($err in $errors) {
+        if ($firstLines -match [Regex]::Escape($err)) {
+            $msg = "Server IP: $serverIP`nThời gian: $timeNow`n⚠️ Backup failed`nNội dung: $err"
+            Send-Telegram -Message $msg
+            $foundError = $true
+            exit 1
+        }
+    }
+
+    if (-not $foundError) {
+        Write-Output "✅ Không phát hiện lỗi trong $file"
+    }
+} else {
+    $msg = "⚠️ Không tìm thấy file migration.result: $file`nServer IP: $serverIP`nThời gian: $timeNow"
+    Send-Telegram -Message $msg
+    exit 1
+}

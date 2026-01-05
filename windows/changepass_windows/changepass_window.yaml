@@ -1,0 +1,29 @@
+---
+- name: change password Administrator Windows
+  hosts: all
+  gather_facts: no
+  vars_files:
+    - vars/new_password.yaml
+
+  tasks:
+    - name: Run Python script on Ansible controller to update server information via API
+      local_action:
+        module: command
+        cmd: "python3 inbound_api_for_password_history_update.py"
+      environment:
+        VM_NAME: "{{ inventory_hostname }}"  # Truyền tên máy chủ
+      register: api_update_output
+
+    - name: Debug Python script output
+      debug:
+        var: api_update_output.stdout
+        
+ #   - name: deploy Change Administrator password
+ #     win_user:
+ #       name: administrator
+ #       password: "{{servers_passwords[inventory_hostname]}}"
+ #       update_password: always
+          #    - name: update password in inventory file
+      #      set_fact:
+        #        ansible_password: "{{ servers_passwords[ansible_host] }}"
+

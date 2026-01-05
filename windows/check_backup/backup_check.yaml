@@ -1,0 +1,30 @@
+---
+- name: Triển khai script kiểm tra backup và tạo scheduled task
+  hosts: windows
+  gather_facts: no
+
+  tasks:
+#    - name: Đảm bảo thư mục C:\scripts tồn tại
+#      ansible.windows.win_file:
+#        path: C:\scripts
+#        state: directory
+
+    - name: Copy file noti_check_backup.ps1 vào C:\scripts
+      ansible.windows.win_copy:
+        src: noti_check_backup.ps1
+        dest: C:\scripts\noti_check_backup.ps1
+
+#    - name: Tạo scheduled task chạy script vào 9h sáng Chủ Nhật hàng tuần
+#      win_scheduled_task:
+#        name: "CheckBackupNotification"
+#        description: "Thông báo kết quả backup hàng tuần"
+#        actions:
+#          - path: powershell.exe
+#            arguments: '-ExecutionPolicy Bypass -File C:\scripts\noti_check_backup.ps1'
+#        triggers:
+#          - type: weekly
+#            days_of_week: Sunday
+#            start_boundary: "2025-09-21T09:00:00"
+#        username: "SYSTEM"
+#        state: present
+#

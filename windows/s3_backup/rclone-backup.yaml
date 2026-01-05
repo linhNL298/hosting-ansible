@@ -1,0 +1,53 @@
+---
+- name: Triển khai script backup trên s3_aws sử dung rclone
+  hosts: windows
+  gather_facts: no
+
+  tasks:
+#    - name: Đảm bảo thư mục C:\scripts tồn tại
+#      ansible.windows.win_file:
+#        path: C:\scripts
+#        state: directory
+#    - name: Tạo thư mục cấu hình và log nếu chưa có
+#      ansible.windows.win_file:
+#        path: C:\scripts\Log_rclone
+#        state: directory    
+#
+    - name: Copy thư mục rclone
+      ansible.windows.win_copy:
+        src: rclone-v1.71.1-windows-amd64
+        dest: C:\scripts\
+
+#   - name: Tạo file rclone.conf với thông tin MinIO
+#     ansible.windows.win_copy:
+#       dest: C:\scripts\rclone-v1.71.1-windows-amd64\rclone.conf
+#       content: |
+#         [hosting]
+#         type = s3
+#         provider = Minio
+#         env_auth = false
+#         access_key_id = CMSGP2EX3HMZ8LO0I4XG
+#         secret_access_key = hNLBi5HiLxt8g9Xgb1SftdfwGbDLu0wjadFqoJqP
+#         endpoint = https://s3hn.smartcloud.vn
+#
+#   - name: Copy s3aws_backup-rclone.bat
+#     win_template:
+#       src: s3aws_backup-rclone.bat.j2
+#       dest: C:\scripts\s3aws_backup-rclone.bat
+#
+#   - name: Tạo scheduled task chạy s3aws_backup.bat
+#     win_scheduled_task:
+#       name: "S3_Backup"
+#       description: "Backup dữ liệu lên S3 vào 0h sáng chủ nhật hàng tuần"
+#       actions:
+#         - path: C:\scripts\s3aws_backup-rclone.bat
+#       triggers:
+#         - type: weekly
+#           start_boundary: "2025-09-28T00:01:00"   # giờ bắt đầu 0h
+#           days_of_week:
+#             - Sunday
+#       username: "{{ ansible_user }}"        
+#       password: "{{ ansible_password }}" 
+#       run_level: highest
+#       state: present
+#

@@ -1,0 +1,21 @@
+[windows]
+123.30.191.190 ansible_user=Administrator ansible_password='Cntt1#Plesk.190@2024'
+123.30.191.202 ansible_user=Administrator ansible_password='Cntt1#Plesk.202@2024'
+14.225.53.247 ansible_user=Administrator ansible_password='Cntt1#Plesk.247@2024'
+14.225.53.180 ansible_user=Administrator ansible_password='Cntt1#Plesk.180@2024'
+14.225.32.112 ansible_user=Administrator ansible_password='Cntt1#Plesk.112@2024'
+14.225.23.10 ansible_user=Administrator ansible_password='Cntt1#Plesk.10@2024'
+123.30.185.47 ansible_user=Administrator ansible_password='Cntt1#Plesk.47@2024'
+123.30.185.45 ansible_user=Administrator ansible_password='Cntt1#Plesk.45@2024'
+14.225.33.193 ansible_user=Administrator ansible_password='Cntt1#Plesk.193@2024'
+14.225.33.85 ansible_user=Administrator ansible_password='Cntt1#Plesk.85@2024'
+123.30.182.70 ansible_user=Administrator ansible_password='Cntt1#Plesk.70@2024'
+123.30.182.81 ansible_user=Administrator ansible_password='Cntt1#Plesk.81@2024'
+123.30.191.203 ansible_user=Administrator ansible_password='Cntt1#Plesk.203@2024'
+123.31.33.13 ansible_user=Administrator ansible_password='Cntt1#Plesk.13@2024'
+123.30.191.187 ansible_user=Administrator ansible_password='Cntt1#Plesk.187@2024'
+14.225.23.191 ansible_user=Administrator ansible_password='Cntt1#Plesk.191@2024'
+[windows:vars]
+ansible_connection=winrm
+ansible_winrm_server_cert_validation=ignore
+ansible_port=5986

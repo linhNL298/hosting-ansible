@@ -1,0 +1,24 @@
+---
+- name: Deploy Rsync Backup Script to Windows Servers
+  hosts: windows
+  vars_files:
+    - vars/custom_ip.yaml
+  tasks:
+    - name: Create scripts directory if not exists
+      win_file:
+        path: C:\scripts
+        state: directory
+    - name: Debugging the server variables
+      debug:
+        msg: "Host: {{ ansible_host }}, Custom IP: {{ item.custom_ip }}"
+      loop: "{{ servers }}"
+      when: ansible_host == item.ip
+
+    - name: Deploy Rsync backup script
+      win_template:
+        src: rsync_backup.bat.j2
+        dest: C:\scripts\RsyncBackup_new.bat
+      vars:
+        custom_ip: "{{ item.custom_ip }}"
+      loop: "{{ servers }}"
+      when: ansible_host == item.ip

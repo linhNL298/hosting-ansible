@@ -1,0 +1,51 @@
+---
+- name: Deploy Rsync Backup Script and Schedule Task
+  hosts: windows
+  vars_files:
+    - vars/custom_ip_debug.yaml
+  tasks:
+    - name: Create scripts directory if not exists
+      win_file:
+        path: C:\scripts
+        state: directory
+    - name: Copy additional folder from Ansible host to client
+      win_copy:
+        src: /root/ansible/windows/backup/cwRsync  # Đường dẫn tới thư mục trên máy Ansible
+        dest: C:\scripts\  # Đường dẫn tới thư mục đích trên máy Windows
+        recurse: yes  # Sao chép toàn bộ thư mục và các file con
+      loop: "{{ servers }}"
+      when: ansible_host == item.ip
+
+    - name: Debugging the server variables
+      debug:
+        msg: "Host: {{ ansible_host }}, Custom IP: {{ item.custom_ip }}"
+      loop: "{{ servers }}"
+      when: ansible_host == item.ip
+
+    - name: Deploy Rsync backup script
+      win_template:
+        src: rsync_backup.bat.j2
+        dest: C:\scripts\RsyncBackup_new.bat
+      vars:
+        custom_ip: "{{ item.custom_ip }}"
+      loop: "{{ servers }}"
+      when: ansible_host == item.ip
+
+    - name: Create Task Scheduler for Rsync Backup at 00 AM every Sunday
+      win_scheduled_task:
+        name: "Rsync Backup Task"
+        description: "Task to run Rsync backup script every Sunday at 00 AM"
+        actions:
+          - path: C:\scripts\RsyncBackup_new.bat
+            arguments: ""
+        triggers:
+          - type: weekly
+            start_boundary: "2024-09-15T00:01:00"  # Thời gian chạy đầu tiên
+            days_of_week: 
+              - Sunday                       # Chạy vào chủ nhật
+            weeks_interval: 1             # Chạy hàng tuần
+        username: "SYSTEM"
+        run_level: highest               # Bật Run with highest privileges
+        state: present
+      loop: "{{ servers }}"
+      when: ansible_host == item.ip

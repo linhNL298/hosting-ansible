@@ -1,0 +1,27 @@
+---
+- name: Check DB type on Windows
+  hosts: windows
+  tasks:
+    - name: Check for SQL Server
+      win_shell: Get-Service | Where-Object { $_.DisplayName -like "*SQL Server*" } | Select-Object DisplayName, Status
+      register: sql_server_status
+
+    - name: Check for MySQL/MariaDB
+      win_shell: Get-Service | Where-Object { $_.DisplayName -like "*MySQL*" } | Select-Object DisplayName, Status
+      register: mysql_status
+
+    - name: Check for PostgreSQL
+      win_shell: Get-Service | Where-Object { $_.DisplayName -like "*PostgreSQL*" } | Select-Object DisplayName, Status
+      register: postgresql_status
+
+    - name: Display SQL Server status
+      debug:
+        msg: "{{ sql_server_status.stdout_lines }}"
+
+    - name: Display MySQL/MariaDB status
+      debug:
+        msg: "{{ mysql_status.stdout_lines }}"
+
+    - name: Display PostgreSQL status
+      debug:
+        msg: "{{ postgresql_status.stdout_lines }}"

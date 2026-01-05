@@ -1,0 +1,9 @@
+[windows]
+DHIT_Hosting_123.30.191.202 ansible_host=123.30.191.202 ansible_user=Administrator ansible_password='Bss1@Plesk.202#2024'
+Srv2_Plesk_123.30.191.190 ansible_host=123.30.191.190 ansible_user=Administrator ansible_password='Bss1@Plesk.191#2024'   
+
+
+[windows:vars]
+ansible_connection=winrm
+ansible_winrm_server_cert_validation=ignore
+ansible_port=5986

@@ -1,0 +1,26 @@
+@echo off
+setlocal
+
+REM Set log file path
+set LOGFILE=C:\scripts\RsyncBackup_new.log
+
+REM Get the current date and time
+for /f "tokens=1-4 delims=/- " %%a in ('date /t') do set CDATE=%%d-%%b-%%c
+for /f "tokens=1-2 delims=:. " %%a in ('time /t') do set CTIME=%%a:%%b
+
+REM Write start time to log file
+echo Starting rsync at %CDATE% %CTIME% >> %LOGFILE%
+
+REM Run rsync and append output to log file
+"C:\scripts\cwRsync\rsync.exe" -avz --delete --progress --log-file=%LOGFILE% "/cygdrive/C/Program Files (x86)/Plesk/Backup/" SvcCWRSYNC@14.225.68.120::{{ custom_ip }}/Backup 
+"C:\scripts\cwRsync\rsync.exe" -avz --delete --progress --log-file=%LOGFILE% "/cygdrive/C/Program Files (x86)/Plesk/MySQL/Backup" SvcCWRSYNC@14.225.68.120::{{ custom_ip }}/psa_backup
+
+REM Get the current date and time after rsync completes
+for /f "tokens=1-4 delims=/- " %%a in ('date /t') do set EDATE=%%d-%%b-%%c
+for /f "tokens=1-2 delims=:. " %%a in ('time /t') do set ETIME=%%a:%%b
+
+REM Write end time to log file
+echo Finished rsync at %EDATE% %ETIME% >> %LOGFILE%
+
+endlocal
+

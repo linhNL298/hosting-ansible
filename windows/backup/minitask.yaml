@@ -1,0 +1,19 @@
+---
+- name: Deploy Rsync Backup Script and Schedule Task
+  hosts: windows
+  vars_files:
+    - vars/custom_ip.yaml
+  tasks:
+    - name: Create log directory for Rsync
+      win_file:
+        path: "C:\\scripts\\Log_rsync"
+        state: directory
+
+    - name: Deploy Rsync backup script
+      win_template:
+        src: RsyncBackup_new.bat.j2
+        dest: C:\scripts\RsyncBackup_new.bat
+      vars:
+        custom_ip: "{{ item.custom_ip }}"
+      loop: "{{ servers }}"
+      when: ansible_host == item.ip

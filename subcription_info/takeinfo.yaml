@@ -1,0 +1,41 @@
+---
+- name: Thu thập subscription info từ Plesk
+  hosts: all
+  gather_facts: yes
+
+  tasks:
+
+    - name: Lấy danh sách domain (Linux)
+      shell: plesk bin subscription --list
+      when: ansible_system != 'Windows'
+      register: domain_list_linux
+
+    - name: Lấy danh sách domain (Windows)
+      win_shell: plesk bin subscription --list
+      when: ansible_system == 'Windows'
+      register: domain_list_windows
+
+    - name: Tạo danh sách domain dùng chung
+      set_fact:
+        domain_list: "{{ domain_list_linux.stdout_lines if domain_list_linux is defined else domain_list_windows.stdout_lines }}"
+
+    - name: Lấy thông tin domain (Linux)
+      shell: plesk bin subscription --info {{ item }}
+      loop: "{{ domain_list }}"
+      register: subs_linux
+      when: ansible_system != 'Windows'
+
+    - name: Lấy thông tin domain (Windows)
+      win_shell: plesk bin subscription --info {{ item }}
+      loop: "{{ domain_list }}"
+      register: subs_windows
+      when: ansible_system == 'Windows'
+
+    - name: Ghi kết quả về máy control (localhost)
+      copy:
+        content: |
+          {% for r in (subs_linux.results if subs_linux is defined else subs_windows.results) %}
+          {{ r.stdout }}
+          {% endfor %}
+        dest: "/tmp/{{ inventory_hostname }}_subs.txt"
+      delegate_to: localhost

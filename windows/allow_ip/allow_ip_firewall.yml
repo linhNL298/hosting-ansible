@@ -1,0 +1,17 @@
+- name: Allow specific IPs on Windows Firewall
+  hosts: windows
+  gather_facts: no
+  vars:
+    allowed_ips:
+      - 113.164.0.160/27 
+  tasks:      
+    - name: Allow all traffic from a specific IP
+      win_firewall_rule:
+        name: "Allow ALL from IP"
+        enable: yes
+        state: present
+        action: allow
+        direction: in
+        protocol: any
+        remoteip: "{{ allowed_ips | join(',') }}"
+        profile: Domain,Private,Public

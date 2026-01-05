@@ -1,0 +1,26 @@
+@echo off
+setlocal
+
+REM Get the current date and time
+for /f "tokens=2 delims==" %%a in ('wmic os get localdatetime /value') do set datetime=%%a
+set CDATE=%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%
+set CTIME=%datetime:~8,2%-%datetime:~10,2%
+
+REM Create a unique log file name with timestamp
+set LOGFILE=C:\scripts\Log_rsync\RsyncLog_%CDATE%.txt
+
+REM Write start time to the log file
+echo Starting rsync at %CDATE% %CTIME% > %LOGFILE%
+
+REM Run rsync and log the output
+
+"C:\scripts\cwRsync\rsync.exe" -avz --delete --progress --log-file=%LOGFILE% "/cygdrive/C/Program Files (x86)/Plesk/Backup/" SvcCWRSYNC@14.225.68.120::{{ custom_ip }}/Backup
+"C:\scripts\cwRsync\rsync.exe" -avz --delete --progress --log-file=%LOGFILE% "/cygdrive/C/Program Files (x86)/Plesk/MySQL/Backup" SvcCWRSYNC@14.225.68.120::{{ custom_ip }}/psa_backup
+
+REM Write end time to the log file
+for /f "tokens=2 delims==" %%a in ('wmic os get localdatetime /value') do set datetime=%%a
+set EDATE=%datetime:~0,4%-%datetime:~4,2%-%datetime:~6,2%
+set ETIME=%datetime:~8,2%:%datetime:~10,2%
+echo Finished rsync at %EDATE% %ETIME% >> %LOGFILE%
+
+endlocal

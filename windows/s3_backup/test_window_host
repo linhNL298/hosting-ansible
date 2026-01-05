@@ -1,0 +1,7 @@
+[windows]
+123.30.191.190  ansible_user=Administrator ansible_password='Cntt1#Plesk.190@2024'
+123.30.185.45   ansible_user=Administrator ansible_password='Cntt1#Plesk.45@2024'
+[windows:vars]
+ansible_connection=winrm
+ansible_winrm_server_cert_validation=ignore
+ansible_port=5986

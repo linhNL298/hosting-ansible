@@ -1,0 +1,6 @@
+[windows]
+14.225.68.250	ansible_user=Administrator ansible_password='Cloud#Plesk.250'
+[windows:vars]
+ansible_connection=winrm
+ansible_winrm_server_cert_validation=ignore
+ansible_port=5986

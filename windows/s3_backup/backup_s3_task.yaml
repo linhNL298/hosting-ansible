@@ -1,0 +1,42 @@
+---
+- name: Triển khai script backup trên s3_aws
+  hosts: windows
+  gather_facts: no
+
+  tasks:
+#    - name: Đảm bảo thư mục C:\scripts tồn tại
+#      ansible.windows.win_file:
+#        path: C:\scripts
+#        state: directory
+
+#    - name: Copy mc.exe
+#      ansible.windows.win_copy:
+#        src: mc.exe
+#        dest: C:\scripts\mc.exe
+#
+#    - name: Copy s3aws_backup.bat
+#      win_template:
+#        src: s3aws_backup.bat.j2
+#        dest: C:\scripts\s3aws_backup.bat
+#
+#    - name: run command để kết nối với s3 compatible storage
+#      ansible.windows.win_command: >
+#        mc alias set webhosting https://s3hn.smartcloud.vn CMSGP2EX3HMZ8LO0I4XG hNLBi5HiLxt8g9Xgb1SftdfwGbDLu0wjadFqoJqP
+#      args:
+#        chdir: C:\scripts
+#
+    - name: Tạo scheduled task chạy s3aws_backup.bat
+      win_scheduled_task:
+        name: "S3_Backup"
+        description: "Backup dữ liệu lên S3 vào 0h sáng chủ nhật hàng tuần"
+        actions:
+          - path: C:\scripts\s3aws_backup.bat
+        triggers:
+          - type: weekly
+            start_boundary: "2025-09-28T00:01:00"   # giờ bắt đầu 0h
+            days_of_week:
+              - Sunday
+        username: "{{ ansible_user }}"        
+        password: "{{ ansible_password }}" 
+        run_level: highest
+        state: present

@@ -1,0 +1,68 @@
+---
+- name: Thu thập subscription info từ Plesk Linux
+  hosts: linux
+  gather_facts: yes
+
+  vars:
+    output_dir: "/root/ansible/subcription_info/ketqua"
+
+  tasks:
+    - name: Lấy danh sách domain
+      shell: plesk bin subscription --list
+      register: domain_list_linux
+
+    - name: Tạo danh sách domain Linux
+      set_fact:
+        domain_list: "{{ domain_list_linux.stdout_lines }}"
+
+    - name: Lấy thông tin domain (Linux)
+      shell: plesk bin subscription --info {{ item }}
+      loop: "{{ domain_list }}"
+      register: subs_info
+
+    - name: Ghi kết quả về
+      delegate_to: localhost
+      copy:
+        content: |
+          Domain,Creation Date,Expiration Date
+          {% for r in subs_info.results %}
+          {% set domain = r.item %}
+          {% set created = (r.stdout_lines | select("search", "Creation date:") | list)[0].split(":", 1)[1] | trim %}
+          {% set expired = (r.stdout_lines | select("search", "Expiration date:") | list)[0].split(":", 1)[1] | trim %}
+          {{ domain }},{{ created }},{{ expired }}
+          {% endfor %}
+        dest: "{{ output_dir }}/{{ inventory_hostname }}_subs_linux.csv"
+
+- name: Thu thập subscription info từ Plesk Windows
+  hosts: windows
+  gather_facts: yes
+
+  vars:
+    output_dir: "/root/ansible/subcription_info/ketqua"
+
+  tasks:
+    - name: Lấy danh sách domain
+      win_shell: plesk bin subscription --list
+      register: domain_list_windows
+
+    - name: Tạo danh sách domain Windows
+      set_fact:
+        domain_list: "{{ domain_list_windows.stdout_lines }}"
+
+    - name: Lấy thông tin domain (Windows)
+      win_shell: plesk bin subscription --info {{ item }}
+      loop: "{{ domain_list }}"
+      register: subs_info
+
+    - name: Ghi kết quả về
+      delegate_to: localhost
+      copy:
+        content: |
+          Domain,Creation Date,Expiration Date
+          {% for r in subs_info.results %}
+          {% set domain = r.item %}
+          {% set created = (r.stdout_lines | select("search", "Creation date:") | list)[0].split(":", 1)[1] | trim %}
+          {% set expired = (r.stdout_lines | select("search", "Expiration date:") | list)[0].split(":", 1)[1] | trim %}
+          {{ domain }},{{ created }},{{ expired }}
+          {% endfor %}
+        dest: "{{ output_dir }}/{{ inventory_hostname }}_subs_windows.csv"

@@ -1,0 +1,66 @@
+---
+- name: Cài đặt mc và cấu hình backup S3
+  hosts: plesk
+  vars: 
+    backup_path: "/var/lib/psa/dumps/"
+  become: true
+  tasks:
+    - name: Tải mc binary
+      copy: 
+        src: mc
+        dest: /usr/local/bin/mc
+        mode: '0755' 
+
+    - name: Tạo alias S3 cho mc
+      shell: |
+       /usr/local/bin/mc alias set webhosting https://s3hn.smartcloud.vn CMSGP2EX3HMZ8LO0I4XG hNLBi5HiLxt8g9Xgb1SftdfwGbDLu0wjadFqoJqP --api S3v4
+      args:
+        creates: /root/.mc/config.json
+
+    - name: upload file backup 
+      template:
+        src: s3aws_backup.sh.j2
+        dest: /root/scripts/s3aws_backup.sh
+        mode: '0755'
+    
+    - name: Tạo cronjob backup vào 22h chủ nhật hàng tuần
+      cron:
+        name: "Backup lên S3"
+        user: root
+        job: "/root/scripts/s3aws_backup.sh >> /var/log/s3_backup.log 2>&1"
+        minute: "0"
+        hour: "0"
+        weekday: "0"   # 0=Chủ Nhật, 5=Thứ Sáu
+
+- name: Cài đặt mc và cấu hình backup S3
+  hosts: DA
+  vars:
+    backup_path: "/home/admin/admin_backups"
+  become: true
+  tasks:
+    - name: Copy file mc 
+      copy:
+        src: mc
+        dest: /usr/local/bin/mc
+        mode: '0755'
+
+    - name: Tạo alias S3 cho mc
+      shell: |
+        /usr/local/bin/mc alias set webhosting https://s3hn.smartcloud.vn CMSGP2EX3HMZ8LO0I4XG hNLBi5HiLxt8g9Xgb1SftdfwGbDLu0wjadFqoJqP --api S3v4
+      args:
+        creates: /root/.mc/config.json
+
+    - name: upload file backup
+      template:
+        src: s3aws_backup.sh.j2
+        dest: /root/scripts/s3aws_backup.sh
+        mode: '0755'
+
+    - name: Tạo cronjob backup vào 22h chủ nhật hàng tuần
+      cron:
+        name: "Backup lên S3"
+        user: root
+        job: "/root/scripts/s3aws_backup.sh >> /var/log/s3_backup.log 2>&1"
+        minute: "0"
+        hour: "0"
+        weekday: "0"   # 0=Chủ Nhật, 5=Thứ Sáu

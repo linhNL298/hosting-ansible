@@ -1,0 +1,64 @@
+---
+- name: deploy rsyncbackup scritp to plesk Hosting
+  hosts: plesk
+  vars:
+    backup_path: "/var/lib/psa/dumps/"
+  tasks:
+    - name: create scripts directory if not exists
+      file:
+        path: /root/scripts
+        state: directory
+        mode: '0755'
+    - name: deploy upload file rsyncbackup to server
+      template:
+        src: rsync_backup_new.sh.j2
+        dest: /root/scripts/rsync_backup_new.sh
+        mode: '0755'
+
+
+- name: Deploy rsync backup script to cpanel servers
+  hosts: cpanel
+  vars:
+    backup_path: "/home/backup/"
+  tasks:
+    - name: create scripts directory if not exists
+      file:
+        path: /root/scripts
+        state: directory
+        mode: '0755'
+    - name: deploy upload file rsyncbackup to server
+      template:
+        src: rsync_backup_new.sh.j2
+        dest: /root/scripts/rsync_backup_new.sh
+        mode: '0755'
+
+
+- name: Deploy rsync backup script to DirectAdmin servers
+  hosts: DA
+  vars:
+    backup_path: "/home/admin/admin_backups"
+  tasks:
+    - name: create scripts directory if not exists
+      file:
+        path: /root/scripts
+        state: directory
+        mode: '0755'
+    - name: deploy upload file rsyncbackup to server
+      template:
+        src: rsync_backup_new.sh.j2
+        dest: /root/scripts/rsync_backup_new.sh
+        mode: '0755'
+
+
+- name: Add cron job for rsync backup with log
+  hosts: all
+  tasks:
+    - name: Add a cron job to run rsync backup every Sunday at 0:00 and save logs
+      cron:
+        name: "Weekly rsync backup with log"
+        minute: "0"
+        hour: "0"
+        day: "*"
+        month: "*"
+        weekday: "0"
+        job: "/root/scripts/rsync_backup_new.sh >> /var/log/rsync_backup_new.log 2>&1"

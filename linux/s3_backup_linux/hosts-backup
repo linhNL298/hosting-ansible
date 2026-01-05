@@ -1,0 +1,25 @@
+[plesk]
+14.225.33.202
+14.225.23.106
+14.225.23.239
+14.225.23.19
+14.225.23.146
+14.225.53.99
+221.132.29.14
+221.132.29.9
+
+[cpanel]
+14.225.32.11
+14.225.32.186
+123.30.109.8	ansible_port=61616
+123.30.182.67	ansible_port=2017	ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+123.30.182.73	ansible_port=1999	ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+123.30.182.76	ansible_port=2017	ansible_python_interpreter=/opt/alt/python39/bin/python3.9
+123.30.182.80	ansible_port=1999	ansible_python_interpreter=/opt/alt/python39/bin/python3.9
+123.30.185.44	ansible_port=2017	ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+123.30.185.46	ansible_port=2017	ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+123.30.185.160	ansible_port=2017	ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+123.30.185.161	ansible_port=2017	ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+
+[DA]
+203.162.31.118	ansible_ssh_extra_args='-o HostKeyAlgorithms=+ssh-dss'	ansible_python_interpreter=/opt/alt/python311/bin/python3.11

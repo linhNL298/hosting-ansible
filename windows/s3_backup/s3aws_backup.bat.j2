@@ -1,0 +1,62 @@
+@echo off
+chcp 65001 >nul
+setlocal enabledelayedexpansion
+
+:: Định nghĩa biến cấu hình
+set "RCLONE_EXE=C:\scripts\rclone-v1.71.1-windows-amd64\rclone.exe"
+set "LOG_DIR=C:\scripts\Log_rclone"
+set "DATE=%date:~10,4%-%date:~4,2%-%date:~7,2%"
+set "LOGFILE=%LOG_DIR%\rclone_backup_%DATE%.log"
+
+set "REMOTE=hosting"
+set "SRC1=C:\Program Files (x86)\Plesk\Backup"
+set "DST1=%REMOTE%:webhosting/weekly/14.225.68.250/backup"
+set "SRC2=C:\Program Files (x86)\Plesk\MySQL\Backup"
+set "DST2=%REMOTE%:webhosting/weekly/14.225.68.250/psa_backup"
+
+:: Tạo thư mục log nếu chưa có
+if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
+
+:: Ghi thông tin bắt đầu vào log
+echo -------------------------------------------------- >> "%LOGFILE%"
+echo [!DATE! !TIME!] 🚀 BẮT ĐẦU SAO LƯU : !SRC! → !DST! >> "%LOGFILE%"
+echo -------------------------------------------------- >> "%LOGFILE%"
+
+:: Chạy sao lưu từng thư mục
+call :DoSync "%SRC1%" "%DST1%"
+call :DoSync "%SRC2%" "%DST2%"
+
+:: Ghi thông tin hoàn tất vào log
+echo ================================================== >> "%LOGFILE%"
+echo [%DATE% %TIME%] ✅ SAO LƯU HOÀN TẤT >> "%LOGFILE%"
+echo ================================================== >> "%LOGFILE%"
+goto :eof
+
+:DoSync
+setlocal enabledelayedexpansion
+set "SRC=%~1"
+set "DST=%~2"
+
+"%RCLONE_EXE%" sync "!SRC!" "!DST!" ^
+  --s3-upload-concurrency 8 ^
+  --transfers 16 ^
+  --checkers 8 ^
+  --s3-chunk-size 128M ^
+  --ignore-errors ^
+  --retries 5 ^
+  --low-level-retries 10 ^
+  --log-level INFO ^
+  --stats 60s ^
+  --create-empty-src-dirs ^
+  --progress >> "%LOGFILE%" 2>&1
+
+if !errorlevel! == 0 (
+    echo [!DATE! !TIME!] ✅ HOÀN THÀNH: !SRC! → !DST! >> "%LOGFILE%"
+) else (
+    echo [!DATE! !TIME!] ❌ LỖI: !SRC! → !DST! (ErrorLevel=!errorlevel!) >> "%LOGFILE%"
+)
+
+endlocal & (
+    echo. >> "%LOGFILE%"
+)
+goto :eof

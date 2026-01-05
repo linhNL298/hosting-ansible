@@ -1,0 +1,25 @@
+[plesk]
+VM_HOSTING_002 		ansible_host=14.225.23.106
+VM_HOSTING_001 		ansible_host=14.225.23.239
+centos7 		ansible_host=14.225.23.19
+vm_new2 		ansible_host=14.225.23.146
+HOSTING_UNGCUU_02 	ansible_host=221.132.29.9
+VM_HOSTING_003 		ansible_host=221.132.29.14
+centos7_02 		ansible_host=14.225.33.202
+CNTT1_Plesk_Ubuntu_22 	ansible_host=14.225.53.99
+
+[cpanel]
+host9 				ansible_host=14.225.32.11
+ubuntu2204 			ansible_host=14.225.32.186
+host1 				ansible_host=123.30.109.8    ansible_port=61616
+Srv4_Cpanel_123.30.182.67 	ansible_host=123.30.182.67   ansible_port=2017       ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+host2 				ansible_host=123.30.182.73   ansible_port=1999       ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+Srv4_Cpanel_123.30.182.76 	ansible_host=123.30.182.76   ansible_port=2017       ansible_python_interpreter=/opt/alt/python39/bin/python3.9
+host3 				ansible_host=123.30.182.80   ansible_port=1999       ansible_python_interpreter=/opt/alt/python39/bin/python3.9
+Srv4_Cpanel_123.30.185.44 	ansible_host=123.30.185.44   ansible_port=2017       ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+Srv4_Cpanel_123.30.185.46 	ansible_host=123.30.185.46   ansible_port=2017       ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+Srv4_Cpanel_123.30.185.160 	ansible_host=123.30.185.160  ansible_port=2017       ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+Srv4_Cpanel_123.30.185.161 	ansible_host=123.30.185.161  ansible_port=2017       ansible_python_interpreter=/opt/alt/python38/bin/python3.8
+
+[DA]
+host4 ansible_host=203.162.31.118  ansible_ssh_extra_args='-o HostKeyAlgorithms=+ssh-dss'  ansible_python_interpreter=/opt/alt/python311/bin/python3.11
