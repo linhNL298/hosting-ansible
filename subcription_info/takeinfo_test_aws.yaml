@@ -1,0 +1,57 @@
+---
+- name: Thu thập subscription info và upload lên S3-compatible
+  hosts: linux
+  gather_facts: no
+
+  vars:
+    s3_endpoint: "https://s3hn.smartcloud.vn"
+    s3_bucket: "webhosting"
+    s3_prefix: "plesk/subscription_info"   # thư mục trên bucket
+    aws_region: "us-east-1"               # S3-compatible thường chấp nhận region giả
+
+    local_dir: "/tmp/subscription_info"
+    local_file: "{{ local_dir }}/{{ inventory_hostname }}_subs_linux.csv"
+    s3_key: "{{ s3_prefix }}/{{ inventory_hostname }}_subs_linux_{{ lookup('pipe','date +%Y%m%d_%H%M%S') }}.csv"
+
+  tasks:
+    - name: Lấy danh sách domain
+      shell: plesk bin subscription --list
+      register: domain_list_linux
+
+    - name: Lấy thông tin domain
+      shell: plesk bin subscription --info {{ item }}
+      loop: "{{ domain_list_linux.stdout_lines }}"
+      register: subs_info
+
+    - name: Tạo thư mục file trên runner
+      delegate_to: localhost
+      file:
+        path: "{{ local_dir }}"
+        state: directory
+
+    - name: Ghi CSV trên runner
+      delegate_to: localhost
+      copy:
+        content: |
+          Domain,Creation Date,Expiration Date
+          {% for r in subs_info.results %}
+          {% set domain = r.item %}
+          {% set created_line = (r.stdout_lines | select('search','Creation date:') | list | first | default('Creation date:')) %}
+          {% set expired_line = (r.stdout_lines | select('search','Expiration date:') | list | first | default('Expiration date:')) %}
+          {{ domain }},{{ created_line.split(':',1)[1] | default('') | trim }},{{ expired_line.split(':',1)[1] | default('') | trim }}
+          {% endfor %}
+        dest: "{{ local_file }}"
+
+    - name: Upload lên S3-compatible
+      delegate_to: localhost
+      amazon.aws.s3_object:
+        endpoint_url: "{{ s3_endpoint }}"
+        region: "{{ aws_region }}"
+        bucket: "{{ s3_bucket }}"
+        object: "{{ s3_key }}"
+        src: "{{ local_file }}"
+        mode: put
+      register: put_result
+
+    - debug:
+        msg: "Uploaded: {{ s3_endpoint }}/{{ s3_bucket }}/{{ s3_key }}"
