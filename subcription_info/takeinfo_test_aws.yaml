@@ -67,15 +67,15 @@
       args:
         executable: /bin/bash
 
-    - name: Upload lên S3-compatible bằng rclone (no aws cli needed)
-      delegate_to: localhost
-      ansible.builtin.command: >
-        /tmp/rclone-bin/rclone copyto {{ local_file }}
-        :s3:{{ s3_bucket }}/{{ s3_key }}
-        --s3-provider Other
-        --s3-endpoint {{ s3_endpoint }}
-        --s3-access-key-id {{ access_key }}
-        --s3-secret-access-key {{ secret_key }}
-        --s3-region {{ aws_region }}
-      register: put_result
-      changed_when: put_result.rc == 0
+    - name: Upload lên S3-compatible bằng rclone (dùng AWS Credential của AWX)
+    delegate_to: localhost
+    ansible.builtin.command: >
+      /tmp/rclone-bin/rclone copyto {{ local_file }}
+      :s3:{{ s3_bucket }}/{{ s3_key }}
+      --s3-provider Other
+      --s3-endpoint {{ s3_endpoint }}
+      --s3-region {{ aws_region }}
+      --s3-access-key-id {{ lookup('env','AWS_ACCESS_KEY_ID') }}
+      --s3-secret-access-key {{ lookup('env','AWS_SECRET_ACCESS_KEY') }}
+    register: put_result
+    changed_when: put_result.rc == 0
