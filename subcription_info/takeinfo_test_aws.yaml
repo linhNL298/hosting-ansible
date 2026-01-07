@@ -51,6 +51,7 @@
         object: "{{ s3_key }}"
         src: "{{ local_file }}"
         mode: put
+        content: "{{ subs_csv }}"
       register: put_result
 
     - debug:
