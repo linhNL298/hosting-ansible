@@ -52,25 +52,30 @@
           {{ domain }},{{ created_line.split(':',1)[1] | default('') | trim }},{{ expired_line.split(':',1)[1] | default('') | trim }}
           {% endfor %}
 
-    - name: Check aws cli exists on localhost
+    - name: Download rclone (portable) on localhost
       delegate_to: localhost
-      ansible.builtin.command: aws --version
-      register: aws_ver
-      changed_when: false
+      ansible.builtin.shell: |
+        set -e
+        mkdir -p /tmp/rclone-bin
+        if [ ! -x /tmp/rclone-bin/rclone ]; then
+          cd /tmp/rclone-bin
+          curl -fsSL -o rclone.zip https://downloads.rclone.org/rclone-current-linux-amd64.zip
+          unzip -o rclone.zip >/dev/null
+          mv rclone-*-linux-amd64/rclone .
+          chmod +x rclone
+        fi
+      args:
+        executable: /bin/bash
 
-    - name: Upload lên S3-compatible bằng AWS CLI (ổn định với S3-compatible)
+    - name: Upload lên S3-compatible bằng rclone (no aws cli needed)
       delegate_to: localhost
       ansible.builtin.command: >
-        aws --region {{ aws_region }}
-        --endpoint-url {{ s3_endpoint }}
-        s3 cp {{ local_file }}
-        s3://{{ s3_bucket }}/{{ s3_key }}
-      environment:
-        AWS_ACCESS_KEY_ID: "{{ access_key }}"
-        AWS_SECRET_ACCESS_KEY: "{{ secret_key }}"
-        AWS_EC2_METADATA_DISABLED: "true"
+        /tmp/rclone-bin/rclone copyto {{ local_file }}
+        :s3:{{ s3_bucket }}/{{ s3_key }}
+        --s3-provider Other
+        --s3-endpoint {{ s3_endpoint }}
+        --s3-access-key-id {{ access_key }}
+        --s3-secret-access-key {{ secret_key }}
+        --s3-region {{ aws_region }}
       register: put_result
       changed_when: put_result.rc == 0
-
-    - debug:
-        msg: "Uploaded: {{ s3_endpoint }}/{{ s3_bucket }}/{{ s3_key }}"
