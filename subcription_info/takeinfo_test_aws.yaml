@@ -6,12 +6,20 @@
   vars:
     s3_endpoint: "https://s3hn.smartcloud.vn"
     s3_bucket: "webhosting"
-    s3_prefix: "plesk/subscription_info"   # thư mục trên bucket
-    aws_region: "us-east-1"               # S3-compatible thường chấp nhận region giả
+    s3_prefix: "plesk/subscription_info"
+    aws_region: "us-east-1"
 
+    # lưu file trên AWX runner / localhost
     local_dir: "/tmp/subscription_info"
     local_file: "{{ local_dir }}/{{ inventory_hostname }}_subs_linux.csv"
-    s3_key: "{{ s3_prefix }}/{{ inventory_hostname }}_subs_linux_{{ lookup('pipe','date +%Y%m%d_%H%M%S') }}.csv"
+
+    # tạo timestamp 1 lần để ổn định (không bị lệch giữa task)
+    ts: "{{ lookup('pipe','date +%Y%m%d_%H%M%S') }}"
+    s3_key: "{{ s3_prefix }}/{{ inventory_hostname }}_subs_linux_{{ ts }}.csv"
+
+    # bạn truyền 2 biến này từ AWX Credential / extra_vars
+    # access_key: "xxxx"
+    # secret_key: "yyyy"
 
   tasks:
     - name: Lấy danh sách domain
@@ -25,13 +33,16 @@
 
     - name: Tạo thư mục file trên runner
       delegate_to: localhost
-      file:
+      ansible.builtin.file:
         path: "{{ local_dir }}"
         state: directory
+        mode: "0755"
 
     - name: Ghi CSV trên runner
       delegate_to: localhost
-      copy:
+      ansible.builtin.copy:
+        dest: "{{ local_file }}"
+        mode: "0644"
         content: |
           Domain,Creation Date,Expiration Date
           {% for r in subs_info.results %}
@@ -40,19 +51,26 @@
           {% set expired_line = (r.stdout_lines | select('search','Expiration date:') | list | first | default('Expiration date:')) %}
           {{ domain }},{{ created_line.split(':',1)[1] | default('') | trim }},{{ expired_line.split(':',1)[1] | default('') | trim }}
           {% endfor %}
-        dest: "{{ local_file }}"
 
-    - name: Upload lên S3-compatible
+    - name: Check aws cli exists on localhost
       delegate_to: localhost
-      amazon.aws.s3_object:
-        endpoint_url: "{{ s3_endpoint }}"
-        region: "{{ aws_region }}"
-        bucket: "{{ s3_bucket }}"
-        object: "{{ s3_key }}"
-        src: "{{ local_file }}"
-        mode: put
-        content: "{{ subs_csv }}"
+      ansible.builtin.command: aws --version
+      register: aws_ver
+      changed_when: false
+
+    - name: Upload lên S3-compatible bằng AWS CLI (ổn định với S3-compatible)
+      delegate_to: localhost
+      ansible.builtin.command: >
+        aws --region {{ aws_region }}
+        --endpoint-url {{ s3_endpoint }}
+        s3 cp {{ local_file }}
+        s3://{{ s3_bucket }}/{{ s3_key }}
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ access_key }}"
+        AWS_SECRET_ACCESS_KEY: "{{ secret_key }}"
+        AWS_EC2_METADATA_DISABLED: "true"
       register: put_result
+      changed_when: put_result.rc == 0
 
     - debug:
         msg: "Uploaded: {{ s3_endpoint }}/{{ s3_bucket }}/{{ s3_key }}"
